@@ -25,8 +25,7 @@ class TransifexAPI(object):
         self._auth = (self._username, self._password)
         self._base_api_url = '%s/api/2' % (self._host)
 
-    def new_project(self, slug, name=None, source_language_code=None,
-                    outsource_project_name=None):
+    def new_project(self, slug, name=None, source_language_code=None, outsource_project_name=None, private=False, repository_url=None):
         """
         Create a new project on transifex
         
@@ -38,7 +37,10 @@ class TransifexAPI(object):
             the source language code, defaults to 'en-gb'
         @param outsource_project_name (optional)
             the name of the project to outsource translation team management to
-            
+        @param private (optional)
+            is the project private (True / False); default is False
+        @param repository_url (optional for private projects)
+            the repository url; this parameter is required for public projects
         @returns None
            
         @raises `TransifexAPIException`
@@ -56,10 +58,14 @@ class TransifexAPI(object):
         headers = {'content-type': 'application/json'}
         data = {
             'name': name, 'slug': slug,
-            'source_language_code': source_language_code, 'description': name
+            'source_language_code': source_language_code, 'description': name,
+            'private': private
         }
         if outsource_project_name is not None:
             data['outsource'] = outsource_project_name
+
+        if repository_url:
+            data['repository_url'] = repository_url
 #        description
 #        long_description
 #        private
@@ -348,4 +354,3 @@ class TransifexAPI(object):
         url = '%s/projects/' % (self._base_api_url)
         response = requests.get(url, auth=self._auth)
         return response.status_code == requests.codes['OK']
-        
