@@ -111,26 +111,24 @@ class TransifexAPI(object):
         
         return json.loads(response.content)
         
-    def new_resource(self, project_slug, path_to_pofile, resource_slug=None,
-                     resource_name=None):
+    def new_resource(self, project_slug, path_to_pofile, resource_slug=None, resource_name=None):
         """
         Creates a new resource with the specified slug from the given file.
         
         @param project_slug
             the project slug
-        @param path_to_pofile
+        @param path_to_pofile (optional)
             the path to the pofile which will be uploaded
         @param resource_slug (optional)
             the resource slug, defaults to a sluggified version of the filename
         @param resource_name (optional)
-            the resource name, defaults to the resource name
+            the resource name, defaults to the resource slug
             
         @return None
         
         @raises `TransifexAPIException`
         @raises `IOError`
         """
-        url = '%s/project/%s/resources/' % (self._base_api_url, project_slug)
         content = open(path_to_pofile, 'r').read()
 
         __, filename = os.path.split(path_to_pofile)
@@ -141,10 +139,27 @@ class TransifexAPI(object):
                 raise InvalidSlugException(
                     '%r is not a valid slug' % (resource_slug)
                 )
-            
+
+        self.new_resource_from_content(project_slug, content, resource_slug, resource_name)
+
+    def new_resource_from_content(self, project_slug, content, resource_slug, resource_name=None):
+        """
+        Creates a new resource with the specified slug from the given po file content
+
+        @param project_slug
+            the project slug
+        @param content
+            the contents of the pofile
+        @param resource_slug
+            the resource slug
+        @param resource_name
+            the resource name, defaults to the resource slug
+        """
+        url = '%s/project/%s/resources/' % (self._base_api_url, project_slug)
+
         if resource_name is None:
             resource_name = resource_slug
-        
+
         headers = {'content-type': 'application/json'}
         data = {
             'name': resource_name, 'slug': resource_slug, 'content': content,
@@ -159,11 +174,11 @@ class TransifexAPI(object):
 #        category
 
         response = requests.post(
-             url, data=json.dumps(data), auth=self._auth, headers=headers,
+            url, data=json.dumps(data), auth=self._auth, headers=headers,
         )
         if response.status_code != requests.codes['CREATED']:
             raise TransifexAPIException(response)
-        
+
     def update_source_translation(self, project_slug, resource_slug,
                                   path_to_pofile):
         """
@@ -185,21 +200,28 @@ class TransifexAPI(object):
         @raises `TransifexAPIException`
         @raises `IOError`
         """
+        content = open(path_to_pofile, 'r').read()
+
+        return self.update_source_translation_from_content(project_slug, resource_slug, content)
+
+    def update_source_translation_from_content(self, project_slug, resource_slug, content):
+        """
+        Same as update_source_translation, but use content of pofile
+        """
         url = '%s/project/%s/resource/%s/content/' % (
             self._base_api_url, project_slug, resource_slug
         )
-        content = open(path_to_pofile, 'r').read()
         headers = {'content-type': 'application/json'}
         data = {'content': content}
         response = requests.put(
-             url, data=json.dumps(data), auth=self._auth, headers=headers,
+            url, data=json.dumps(data), auth=self._auth, headers=headers,
         )
-        
+
         if response.status_code != requests.codes['OK']:
             raise TransifexAPIException(response)
         else:
             return json.loads(response.content)
-        
+
     def delete_resource(self, project_slug, resource_slug):
         """
         Deletes the given resource
