@@ -25,7 +25,7 @@ class TransifexAPI(object):
         self._auth = (self._username, self._password)
         self._base_api_url = '%s/api/2' % (self._host)
 
-    def new_project(self, slug, name=None, source_language_code=None, outsource_project_name=None, private=False, repository_url=None):
+    def new_project(self, slug, name=None, source_language_code=None, outsource_project_name=None, private=False, repository_url=None, team_id=None):
         """
         Create a new project on transifex
         
@@ -41,6 +41,8 @@ class TransifexAPI(object):
             is the project private (True / False); default is False
         @param repository_url (optional for private projects)
             the repository url; this parameter is required for public projects
+        @params team (optional)
+            team
         @returns None
            
         @raises `TransifexAPIException`
@@ -66,6 +68,9 @@ class TransifexAPI(object):
 
         if repository_url:
             data['repository_url'] = repository_url
+
+        if team_id:
+            data['team'] = team_id
 #        description
 #        long_description
 #        private
