@@ -329,7 +329,20 @@ class TransifexAPI(object):
             for line in response.iter_content():
                 handle.write(line)
             handle.close()
-            
+
+    def get_translations(self, project_slug, resource_slug, language_code):
+        """
+        Get the translatons for this project and resource
+        """
+        url = '%s/project/%s/resource/%s/translation/%s/strings' % (self._base_api_url, project_slug, resource_slug, language_code)
+
+        response = requests.get(url, auth=self._auth)
+
+        if response.status_code != requests.codes['OK']:
+            raise TransifexAPIException(response)
+        else:
+            return json.loads(response.content)
+
     def list_languages(self, project_slug, resource_slug):
         """
         List all the languages available for a given resource in a project
