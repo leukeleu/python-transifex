@@ -270,21 +270,28 @@ class TransifexAPI(object):
         @raises `TransifexAPIException`
         @raises `IOError`
         """
+        content = open(path_to_pofile, 'r').read()
+
+        self.new_translation_from_content(project_slug, resource_slug, language_code, content)
+
+    def new_translation_from_content(self, project_slug, resource_slug, language_code, content):
+        """
+        Same as new_translation but use content of po file
+        """
         url = '%s/project/%s/resource/%s/translation/%s/' % (
             self._base_api_url, project_slug, resource_slug, language_code
         )
-        content = open(path_to_pofile, 'r').read()
         headers = {'content-type': 'application/json'}
         data = {'content': content}
         response = requests.put(
-             url, data=json.dumps(data), auth=self._auth, headers=headers,
+            url, data=json.dumps(data), auth=self._auth, headers=headers,
         )
-        
+
         if response.status_code != requests.codes['OK']:
             raise TransifexAPIException(response)
         else:
             return json.loads(response.content)
-            
+
     def get_translation(self, project_slug, resource_slug, language_code,
                         path_to_pofile):
         """
